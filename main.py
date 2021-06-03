@@ -506,10 +506,9 @@ class Joc:
                     dir_libere += self.directii_libere((i, j))
                 elif self.matr[i][j] == opposite_jucator and self.o_sa_fie_capturat((i, j)):
                     dir_libere += self.directii_libere((i, j), True)
-        return dir_libere / 1.2  # impart la un numar relativ mic, pentru ca pot avea cazul cand sunt numarate un pic
+        return dir_libere / 2.2  # impart la un numar relativ mic, pentru ca pot avea cazul cand sunt numarate un pic
         # prea multe directii, de ex n#n ar numara 2 directii libere, desi in realitate e una
-        # singura; desigur, nu se intampla mereu asta, si de aia am ales o constanta putin sub
-        # 2
+        # singura; desigur, nu se intampla mereu asta
 
     # numara cate piese are fiecare
     # nu s sigur daca e o idee prea buna
