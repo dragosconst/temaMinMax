@@ -2,7 +2,7 @@ import copy
 import time
 import pygame
 import sys
-
+from statistics import median
 
 class Joc:
     JMIN = None
@@ -192,7 +192,7 @@ class Joc:
                                 alb_last = (old_i, old_j, i, j)
                             next_joc = Joc(pos_move, self.__class__.NR_LINII, self.__class__.NR_COLOANE, (negru_last,
                                                                                                           alb_last))
-                            next_joc.check_and_mark(jucator)
+                            next_joc.check_and_mark(jucator, (i, j))
                             l_mutari.append(next_joc)
                     if self.parcurgere(0, 1, (i, j), jucator)[0]:
                         true, old_i, old_j = self.parcurgere(0, 1, (i, j), jucator)
@@ -207,7 +207,7 @@ class Joc:
                                 alb_last = (old_i, old_j, i, j)
                             next_joc = Joc(pos_move, self.__class__.NR_LINII, self.__class__.NR_COLOANE, (negru_last,
                                                                                                           alb_last))
-                            next_joc.check_and_mark(jucator)
+                            next_joc.check_and_mark(jucator, (i, j))
                             l_mutari.append(next_joc)
                     if self.parcurgere(1, 0, (i, j), jucator)[0]:
                         true, old_i, old_j = self.parcurgere(1, 0, (i, j), jucator)
@@ -222,7 +222,7 @@ class Joc:
                                 alb_last = (old_i, old_j, i, j)
                             next_joc = Joc(pos_move, self.__class__.NR_LINII, self.__class__.NR_COLOANE, (negru_last,
                                                                                                           alb_last))
-                            next_joc.check_and_mark(jucator)
+                            next_joc.check_and_mark(jucator, (i, j))
                             l_mutari.append(next_joc)
                     if self.parcurgere(0, -1, (i, j), jucator)[0]:
                         true, old_i, old_j = self.parcurgere(0, -1, (i, j), jucator)
@@ -237,7 +237,7 @@ class Joc:
                                 alb_last = (old_i, old_j, i, j)
                             next_joc = Joc(pos_move, self.__class__.NR_LINII, self.__class__.NR_COLOANE, (negru_last,
                                                                                                           alb_last))
-                            next_joc.check_and_mark(jucator)
+                            next_joc.check_and_mark(jucator, (i, j))
                             l_mutari.append(next_joc)
         return l_mutari
 
@@ -372,10 +372,11 @@ class Joc:
                             elif dy == -1:
                                 piese_capturate = j - capat_j - 1
                             modifier = 0
-                            # o sa poata captura piesele garantat
-                            # atunci, vrem sa-l motivam foarte mult sa faca asta
+                            # ambele capete sunt inchise de o piesa, dar nu e neaparat o mutare f buna
+                            # ca e posibil sa fie piese care nu au fost mutate acum, deci nu ar putea
+                            # captura
                             if self.matr[capat_i][capat_j] == jucator:
-                                modifier = 8.0
+                                modifier = 3.0
                             else:
                                 if self.poate_ajunge((capat_i, capat_j), opposite_jucator):
                                     modifier = 2.0
@@ -408,17 +409,15 @@ class Joc:
                 j += dy
 
     # scaneaza tabla de joc pentru capturi ale jucatorului specificat
-    def scan_table_for_captures(self, jucator):
-        for i in range(self.__class__.NR_LINII):
-            for j in range(self.__class__.NR_COLOANE):
-                directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
-                if self.matr[i][j] == jucator:
-                    for dx, dy in directions:
-                        new_i = i + dx
-                        new_j = j + dy
-                        if new_i >= 0 and new_j >= 0 and new_i < self.__class__.NR_LINII and new_j < self.__class__.NR_COLOANE:
-                            if self.matr[new_i][new_j] == Joc.jucator_opus(jucator):
-                                self.try_to_mark(dx, dy, (new_i, new_j), jucator)
+    def scan_table_for_captures(self, jucator, piesa_mutata):
+        (i, j) = piesa_mutata
+        directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+        for dx, dy in directions:
+            new_i = i + dx
+            new_j = j + dy
+            if new_i >= 0 and new_j >= 0 and new_i < self.__class__.NR_LINII and new_j < self.__class__.NR_COLOANE:
+                if self.matr[new_i][new_j] == Joc.jucator_opus(jucator):
+                    self.try_to_mark(dx, dy, (new_i, new_j), jucator)
 
     # functie care se uita daca au fost efectuate capturi, caz in care le marcheaza corespunzator
     # de asemenea, da prioritate userului curent
@@ -428,30 +427,8 @@ class Joc:
     # n#
     # ar conta daca e randul lui a sau nu, deoarece daca am evalua pe ambele, unu dupa altu
     # am putea marca linia 2 ca aaa, iar apoi marcam coloana nnn la loc
-    def check_and_mark(self, jucator):
-        self.scan_table_for_captures(jucator)
-
-    def o_sa_fie_capturat(self, piesa):
-        directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
-        piesa_jucator = self.matr[piesa[0]][piesa[1]]
-        for dx, dy in directions:
-            i, j = piesa[0] + dx, piesa[1] + dy
-            while i >= 0 and j >= 0 and i < self.__class__.NR_LINII and j < self.__class__.NR_COLOANE:
-                if self.matr[i][j] == Joc.jucator_opus(piesa_jucator):
-                    op_i, op_j = piesa[0] + dx * -1, piesa[1] + dy * -1
-                    while op_i >= 0 and op_j >= 0 and op_i < self.__class__.NR_LINII and op_j < self.__class__.NR_COLOANE:
-                        if self.matr[op_i][op_j] == Joc.jucator_opus(piesa_jucator):
-                            return True
-                        if self.matr[op_i][op_j] == self.__class__.GOL:
-                            break
-                        op_i -= dx
-                        op_j -= dy
-                    break
-                if self.matr[i][j] == self.__class__.GOL:
-                    break
-                i += dx
-                j += dy
-        return False
+    def check_and_mark(self, jucator, piesa_mutata):
+        self.scan_table_for_captures(jucator, piesa_mutata)
 
     def directii_libere(self, piesa, will_switch=False):
         directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
@@ -502,16 +479,13 @@ class Joc:
         dir_libere = 0.0
         for i in range(self.__class__.NR_LINII):
             for j in range(self.__class__.NR_COLOANE):
-                if self.matr[i][j] == jucator and not self.o_sa_fie_capturat((i, j)):
+                if self.matr[i][j] == jucator:
                     dir_libere += self.directii_libere((i, j))
-                elif self.matr[i][j] == opposite_jucator and self.o_sa_fie_capturat((i, j)):
-                    dir_libere += self.directii_libere((i, j), True)
         return dir_libere / 2.2  # impart la un numar relativ mic, pentru ca pot avea cazul cand sunt numarate un pic
         # prea multe directii, de ex n#n ar numara 2 directii libere, desi in realitate e una
         # singura; desigur, nu se intampla mereu asta
 
     # numara cate piese are fiecare
-    # nu s sigur daca e o idee prea buna
     def count_pieces(self, jucator):
         nr = 0
         modifier = 1.5
@@ -630,6 +604,10 @@ class Stare:
 
 
 def min_max(stare, estimator=None):
+    global nr_noduri_gen
+    nr_noduri_gen += 1
+
+
     if stare.adancime == 0 or stare.tabla_joc.final():
         if estimator is None or estimator == "n":
             stare.scor = stare.tabla_joc.estimeaza_scor(stare.adancime)
@@ -653,6 +631,9 @@ def min_max(stare, estimator=None):
 
 
 def alpha_beta(alpha, beta, stare, estimator=None):
+    global nr_noduri_gen
+    nr_noduri_gen += 1
+
     if stare.adancime == 0 or stare.tabla_joc.final():
         if estimator is None or estimator == "n":
             stare.scor = stare.tabla_joc.estimeaza_scor(stare.adancime)
@@ -859,7 +840,9 @@ def deseneaza_alegeri(display):
         pygame.display.update()
 
 
+nr_noduri_gen = 0
 def main():
+    global nr_noduri_gen
     # setari interf grafica
     pygame.init()
     pygame.display.set_caption("Ming Mang")
@@ -892,8 +875,17 @@ def main():
     stare_curenta = Stare(tabla_curenta, 'n', ADANCIME_MAX)
 
     tabla_curenta.deseneaza_grid()
+    t_total_start = int(round(time.time() * 1000))
     if pvp == "pve":
         selected_piesa = None
+        # timpii de gandire pt AI
+        tmin = None
+        tmax = None
+        all_times = []
+        nmin = None
+        nmax = None
+        all_nodes = []
+        t_inainte_player = None
         while True:
 
             if (stare_curenta.j_curent == Joc.JMIN):
@@ -902,6 +894,8 @@ def main():
                 # O sa fac in felul urmator: mai intai dai click pe ce piesa vrei sa muti, si dupa iti face cu galben
                 # directiile posibile. Dai click undeva valid si te muta acolo. Daca dai click pe alta piesa de a ta,
                 # o sa te schimbe sa muti pe ea
+                if t_inainte_player is None:
+                    t_inainte_player = int(round(time.time() * 1000))
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         # iesim din program
@@ -949,10 +943,14 @@ def main():
                                     negru_last, alb_last = stare_curenta.tabla_joc.ultima_mutare
                                     print(negru_last)
                                     print(alb_last)
-                                    stare_curenta.tabla_joc.check_and_mark(Joc.JMIN)
+                                    stare_curenta.tabla_joc.check_and_mark(Joc.JMIN, (linie, coloana))
                                     # afisarea starii jocului in urma mutarii utilizatorului
                                     print("\nTabla dupa mutarea jucatorului")
                                     print(str(stare_curenta))
+
+                                    t_dupa = int(round(time.time() * 1000))
+                                    print("Jucatorul a gandit timp de " + str(
+                                        t_dupa - t_inainte_player) + " milisecunde.")
 
                                     stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa)
                                     # testez daca jocul a ajuns intr-o stare finala
@@ -963,12 +961,12 @@ def main():
                                     # S-a realizat o mutare. Schimb jucatorul cu cel opus
                                     stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
 
-
-
             # --------------------------------
             else:  # jucatorul e JMAX (calculatorul)
                 # Mutare calculator
                 selected_piesa = None
+                t_inainte_player = None
+                nr_noduri_gen = 0
 
                 # preiau timpul in milisecunde de dinainte de mutare
                 t_inainte = int(round(time.time() * 1000))
@@ -977,13 +975,31 @@ def main():
                 else:  # tip_algoritm=="alphabeta"
                     stare_actualizata = alpha_beta(-500, 500, stare_curenta)
                 stare_curenta.tabla_joc = stare_actualizata.stare_aleasa.tabla_joc
-                print(stare_actualizata.scor)
+                print("Scorul estimat mutarii: " + str(stare_actualizata.scor))
 
                 print("Tabla dupa mutarea calculatorului\n" + str(stare_curenta))
 
+                print("Noduri generate de algoritm: " + str(nr_noduri_gen))
+                if nmin is None or nr_noduri_gen < nmin:
+                    nmin = nr_noduri_gen
+                if nmax is None or nr_noduri_gen > nmax:
+                    nmax = nr_noduri_gen
+                all_nodes += [nr_noduri_gen]
+                print("Nr noduri minim generat la o mutare " + str(nmin))
+                print("Nr noduri maxim generat la o mutare " + str(nmax))
+                print("Nr noduri median generat la o mutare " + str(median(all_nodes)))
+
                 # preiau timpul in milisecunde de dupa mutare
                 t_dupa = int(round(time.time() * 1000))
+                if tmin is None or t_dupa - t_inainte < tmin:
+                    tmin = t_dupa - t_inainte
+                if tmax is None or t_dupa - t_inainte > tmax:
+                    tmax = t_dupa - t_inainte
+                all_times += [t_dupa - t_inainte]
                 print("Calculatorul a \"gandit\" timp de " + str(t_dupa - t_inainte) + " milisecunde.")
+                print("Timp minim de gandire pana acum " + str(tmin))
+                print("Timp maxim de gandire pana acum " + str(tmax))
+                print("Timp median de gandire pana acum " + str(median(all_times)))
 
                 stare_curenta.tabla_joc.deseneaza_grid()
                 if (afis_daca_final(stare_curenta)):
@@ -994,14 +1010,19 @@ def main():
     elif pvp == "pvp":
         selected_piesa_jmin = None
         selected_piesa_jmax = None
+        t_inainte_player1 = None
+        t_inainte_player2 = None
         while True:
 
             if (stare_curenta.j_curent == Joc.JMIN):
                 selected_piesa_jmax = None
+                t_inainte_player2 = None
                 #
                 # O sa fac in felul urmator: mai intai dai click pe ce piesa vrei sa muti, si dupa iti face cu galben
                 # directiile posibile. Dai click undeva valid si te muta acolo. Daca dai click pe alta piesa de a ta,
                 # o sa te schimbe sa muti pe ea
+                if t_inainte_player1 is None:
+                    t_inainte_player1 = int(round(time.time() * 1000))
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         # iesim din program
@@ -1049,12 +1070,14 @@ def main():
                                              , coloana),
                                             alb_last)
                                     negru_last, alb_last = stare_curenta.tabla_joc.ultima_mutare
-                                    print(negru_last)
-                                    print(alb_last)
-                                    stare_curenta.tabla_joc.check_and_mark(Joc.JMIN)
+                                    stare_curenta.tabla_joc.check_and_mark(Joc.JMIN, (linie, coloana))
                                     # afisarea starii jocului in urma mutarii utilizatorului
                                     print("\nTabla dupa mutarea jucatorului")
                                     print(str(stare_curenta))
+
+                                    t_dupa = int(round(time.time() * 1000))
+                                    print("Jucatorul 1 a gandit timp de " + str(
+                                        t_dupa - t_inainte_player1) + " milisecunde.")
 
                                     stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa_jmin)
                                     # testez daca jocul a ajuns intr-o stare finala
@@ -1066,10 +1089,10 @@ def main():
                                     stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
             else:
                 selected_piesa_jmin = None
-                #
-                # O sa fac in felul urmator: mai intai dai click pe ce piesa vrei sa muti, si dupa iti face cu galben
-                # directiile posibile. Dai click undeva valid si te muta acolo. Daca dai click pe alta piesa de a ta,
-                # o sa te schimbe sa muti pe ea
+                t_inainte_player1 = None
+
+                if t_inainte_player2 is None:
+                    t_inainte_player2 = int(round(time.time() * 1000))
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         # iesim din program
@@ -1121,10 +1144,14 @@ def main():
                                     negru_last, alb_last = stare_curenta.tabla_joc.ultima_mutare
                                     print(negru_last)
                                     print(alb_last)
-                                    stare_curenta.tabla_joc.check_and_mark(Joc.JMAX)
+                                    stare_curenta.tabla_joc.check_and_mark(Joc.JMAX, (linie, coloana))
                                     # afisarea starii jocului in urma mutarii utilizatorului
                                     print("\nTabla dupa mutarea jucatorului")
                                     print(str(stare_curenta))
+
+                                    t_dupa = int(round(time.time() * 1000))
+                                    print("Jucatorul 2 a gandit timp de " + str(
+                                        t_dupa - t_inainte_player2) + " milisecunde.")
 
                                     stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa_jmax)
                                     # testez daca jocul a ajuns intr-o stare finala
@@ -1135,10 +1162,24 @@ def main():
                                     # S-a realizat o mutare. Schimb jucatorul cu cel opus
                                     stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
     else:
+        tmin1 = None
+        tmax1 = None
+        all_times1 = []
+        nmin1 = None
+        nmax1 = None
+        all_nodes1 = []
+
+        tmin2 = None
+        tmax2 = None
+        all_times2 = []
+        nmin2 = None
+        nmax2 = None
+        all_nodes2 = []
         while True:
             if stare_curenta.j_curent == "a":
                 Joc.JMAX = "a"
                 Joc.JMIN = "n"
+                nr_noduri_gen = 0
 
                 # preiau timpul in milisecunde de dinainte de mutare
                 t_inainte = int(round(time.time() * 1000))
@@ -1147,14 +1188,31 @@ def main():
                 else:  # tip_algoritm=="alphabeta"
                     stare_actualizata = alpha_beta(-500, 500, stare_curenta, stare_curenta.j_curent)
                 stare_curenta.tabla_joc = stare_actualizata.stare_aleasa.tabla_joc
-                print(stare_actualizata.scor)
+                print("Scorul estimat mutarii: " + str(stare_actualizata.scor))
 
-                print("Tabla dupa mutarea calculatorului\n" + str(stare_curenta))
+                print("Noduri generate de algoritm: " + str(nr_noduri_gen))
+                if nmin1 is None or nr_noduri_gen < nmin1:
+                    nmin1 = nr_noduri_gen
+                if nmax1 is None or nr_noduri_gen > nmax1:
+                    nmax1 = nr_noduri_gen
+                all_nodes1 += [nr_noduri_gen]
+                print("Nr noduri minim generat la o mutare " + str(nmin1))
+                print("Nr noduri maxim generat la o mutare " + str(nmax1))
+                print("Nr noduri median generat la o mutare " + str(median(all_nodes1)))
 
-                # preiau timpul in milisecunde de dupa mutare
+                print("Tabla dupa mutarea calculatorului 1\n" + str(stare_curenta))
+
+
                 t_dupa = int(round(time.time() * 1000))
-                print("Calculatorul a \"gandit\" timp de " + str(t_dupa - t_inainte) + " milisecunde.")
-
+                if tmin1 is None or t_dupa - t_inainte < tmin1:
+                    tmin1 = t_dupa - t_inainte
+                if tmax1 is None or t_dupa - t_inainte > tmax1:
+                    tmax1 = t_dupa - t_inainte
+                all_times1 += [t_dupa - t_inainte]
+                print("Calculatorul 1 a \"gandit\" timp de " + str(t_dupa - t_inainte) + " milisecunde.")
+                print("Timp minim de gandire pana acum " + str(tmin1))
+                print("Timp maxim de gandire pana acum " + str(tmax1))
+                print("Timp median de gandire pana acum " + str(median(all_times1)))
                 stare_curenta.tabla_joc.deseneaza_grid()
                 if (afis_daca_final(stare_curenta)):
                     break
@@ -1165,6 +1223,7 @@ def main():
             else:
                 Joc.JMAX = "n"
                 Joc.JMIN = "a"
+                nr_noduri_gen = 0
 
                 # preiau timpul in milisecunde de dinainte de mutare
                 t_inainte = int(round(time.time() * 1000))
@@ -1173,14 +1232,31 @@ def main():
                 else:  # tip_algoritm=="alphabeta"
                     stare_actualizata = alpha_beta(-500, 500, stare_curenta, stare_curenta.j_curent)
                 stare_curenta.tabla_joc = stare_actualizata.stare_aleasa.tabla_joc
-                print(stare_actualizata.scor)
+                print("Scorul estimat mutarii: " + str(stare_actualizata.scor))
 
-                print("Tabla dupa mutarea calculatorului\n" + str(stare_curenta))
+                print("Noduri generate de algoritm: " + str(nr_noduri_gen))
+                if nmin2 is None or nr_noduri_gen < nmin2:
+                    nmin2 = nr_noduri_gen
+                if nmax2 is None or nr_noduri_gen > nmax2:
+                    nmax2 = nr_noduri_gen
+                all_nodes2 += [nr_noduri_gen]
+                print("Nr noduri minim generat la o mutare " + str(nmin2))
+                print("Nr noduri maxim generat la o mutare " + str(nmax2))
+                print("Nr noduri median generat la o mutare " + str(median(all_nodes2)))
+
+                print("Tabla dupa mutarea calculatorului 2\n" + str(stare_curenta))
 
                 # preiau timpul in milisecunde de dupa mutare
                 t_dupa = int(round(time.time() * 1000))
-                print("Calculatorul a \"gandit\" timp de " + str(t_dupa - t_inainte) + " milisecunde.")
-
+                if tmin2 is None or t_dupa - t_inainte < tmin2:
+                    tmin2 = t_dupa - t_inainte
+                if tmax2 is None or t_dupa - t_inainte > tmax2:
+                    tmax2 = t_dupa - t_inainte
+                all_times2 += [t_dupa - t_inainte]
+                print("Calculatorul 2 a \"gandit\" timp de " + str(t_dupa - t_inainte) + " milisecunde.")
+                print("Timp minim de gandire pana acum " + str(tmin2))
+                print("Timp maxim de gandire pana acum " + str(tmax2))
+                print("Timp median de gandire pana acum " + str(median(all_times2)))
                 stare_curenta.tabla_joc.deseneaza_grid()
                 if (afis_daca_final(stare_curenta)):
                     break
