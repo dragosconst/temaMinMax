@@ -3,6 +3,7 @@ import time
 import pygame
 import sys
 
+
 class Joc:
     JMIN = None
     JMAX = None
@@ -44,8 +45,8 @@ class Joc:
         else:
             self.ultima_mutare = (None, None)
 
-
-    def deseneaza_grid(self, coloana_marcaj=None, piesa_marcata=None, cr_juc=None):  # tabla de exemplu este ["#","a","#","n",......]
+    def deseneaza_grid(self, coloana_marcaj=None, piesa_marcata=None,
+                       cr_juc=None):  # tabla de exemplu este ["#","a","#","n",......]
 
         for ind in range(self.__class__.NR_COLOANE * self.__class__.NR_LINII):
             linie = ind // self.__class__.NR_COLOANE  # // inseamna div
@@ -58,10 +59,11 @@ class Joc:
             if piesa_marcata is not None:
                 for dx, dy in directii:
                     i, j = piesa_marcata
-                    if culoare == (255, 255, 0): # deja am gasit ca se poate ajunge din piesa la patratul respectiv
+                    if culoare == (255, 255, 0):  # deja am gasit ca se poate ajunge din piesa la patratul respectiv
                         break
                     while i >= 0 and j >= 0 and i < self.__class__.NR_LINII and j < self.__class__.NR_COLOANE:
-                        if self.matr[i][j] == Joc.jucator_opus(cr_juc) or (self.matr[i][j] == cr_juc and (i, j) != piesa_marcata):
+                        if self.matr[i][j] == Joc.jucator_opus(cr_juc) or (
+                                self.matr[i][j] == cr_juc and (i, j) != piesa_marcata):
                             break
                         if i == linie and coloana == j:
                             culoare = (255, 255, 0)
@@ -76,17 +78,16 @@ class Joc:
             pygame.draw.rect(self.__class__.display, culoare, self.__class__.celuleGrid[ind])  # alb = (255,255,255)
             if self.matr[linie][coloana] == 'a':
                 self.__class__.display.blit(self.__class__.alb_img, (
-                coloana * (self.__class__.dim_celula + 1), linie * (self.__class__.dim_celula + 1)))
+                    coloana * (self.__class__.dim_celula + 1), linie * (self.__class__.dim_celula + 1)))
             elif self.matr[linie][coloana] == 'n':
                 self.__class__.display.blit(self.__class__.negru_img, (
-                coloana * (self.__class__.dim_celula + 1), linie * (self.__class__.dim_celula + 1)))
+                    coloana * (self.__class__.dim_celula + 1), linie * (self.__class__.dim_celula + 1)))
         # pygame.display.flip()
         pygame.display.update()
 
     @classmethod
     def jucator_opus(cls, jucator):
         return cls.JMAX if jucator == cls.JMIN else cls.JMIN
-
 
     # x_img = alb_img
     # negru_img = negru_img
@@ -130,7 +131,7 @@ class Joc:
                     return (True, i, j)
                 return (False, -1, -1)
             elif self.matr[i][j] != self.__class__.GOL:
-                return (False, -1, -1) # adica daca a dat mai intai de o piesa a celuilalt jucator
+                return (False, -1, -1)  # adica daca a dat mai intai de o piesa a celuilalt jucator
             i += dx
             j += dy
         return (False, -1, -1)
@@ -142,7 +143,7 @@ class Joc:
             for j in range(self.__class__.NR_COLOANE):
                 if self.matr[i][j] == self.__class__.GOL:
                     if self.parcurgere(-1, 0, (i, j), "a")[0] or self.parcurgere(0, 1, (i, j), "a")[0] \
-                        or self.parcurgere(1, 0, (i, j), "a")[0] or self.parcurgere(0, -1, (i, j), "a")[0]:
+                            or self.parcurgere(1, 0, (i, j), "a")[0] or self.parcurgere(0, -1, (i, j), "a")[0]:
                         aCanMove = True
                     if self.parcurgere(-1, 0, (i, j), "n")[0] or self.parcurgere(0, 1, (i, j), "n")[0] \
                             or self.parcurgere(1, 0, (i, j), "n")[0] or self.parcurgere(0, -1, (i, j), "n")[0]:
@@ -154,7 +155,7 @@ class Joc:
         if nCanMove and aCanMove:
             return False
         if aCanMove:
-            return"a"
+            return "a"
         if nCanMove:
             return "b"
         return "remiza"
@@ -162,11 +163,11 @@ class Joc:
     # verific daca mutarea ar aduce tabla jucatorului in configuratia precedenta
     def back_to_old(self, pos_move, old_config):
         (pi, pj, npi, npj) = pos_move
-        if old_config is None: # adica e printre primele mutari
-            if ((npi == 0 or npi == self.__class__.NR_LINII - 1) and npj == pj)\
-            or ((npj == 0 or npj == self.__class__.NR_COLOANE - 1) and npi == pi):
-                return  True
-            return False # ma uit daca se intoarce pe o linie\coloana de inceput, caz in care ar fi un pas inapoi
+        if old_config is None:  # adica e printre primele mutari
+            if ((npi == 0 or npi == self.__class__.NR_LINII - 1) and npj == pj) \
+                    or ((npj == 0 or npj == self.__class__.NR_COLOANE - 1) and npi == pi):
+                return True
+            return False  # ma uit daca se intoarce pe o linie\coloana de inceput, caz in care ar fi un pas inapoi
         (opi, opj, onpi, onpj) = old_config
         if onpi == pi and onpj == pj and npi == opi and npj == opj:
             return True
@@ -180,66 +181,65 @@ class Joc:
                     negru_last, alb_last = self.ultima_mutare
                     if self.parcurgere(-1, 0, (i, j), jucator)[0]:
                         true, old_i, old_j = self.parcurgere(-1, 0, (i, j), jucator)
-                        pos_move = copy.deepcopy(self.matr)
-                        pos_move[i][j] = jucator
-                        pos_move[old_i][old_j] = self.__class__.GOL
-                        if (jucator == "n" and not self.back_to_old((old_i, old_j, i, j), negru_last))\
-                            or (jucator == "a" and not self.back_to_old((old_i, old_j, i, j), alb_last)):
+                        if (jucator == "n" and not self.back_to_old((old_i, old_j, i, j), negru_last)) \
+                                or (jucator == "a" and not self.back_to_old((old_i, old_j, i, j), alb_last)):
+                            pos_move = copy.deepcopy(self.matr)
+                            pos_move[i][j] = jucator
+                            pos_move[old_i][old_j] = self.__class__.GOL
                             if jucator == "n":
                                 negru_last = (old_i, old_j, i, j)
                             else:
                                 alb_last = (old_i, old_j, i, j)
                             next_joc = Joc(pos_move, self.__class__.NR_LINII, self.__class__.NR_COLOANE, (negru_last,
-                                                                                                        alb_last))
+                                                                                                          alb_last))
                             next_joc.check_and_mark(jucator)
                             l_mutari.append(next_joc)
                     if self.parcurgere(0, 1, (i, j), jucator)[0]:
                         true, old_i, old_j = self.parcurgere(0, 1, (i, j), jucator)
-                        pos_move = copy.deepcopy(self.matr)
-                        pos_move[i][j] = jucator
-                        pos_move[old_i][old_j] = self.__class__.GOL
-                        if (jucator == "n" and not self.back_to_old((old_i, old_j, i, j), negru_last))\
-                            or (jucator == "a" and not self.back_to_old((old_i, old_j, i, j), alb_last)):
+                        if (jucator == "n" and not self.back_to_old((old_i, old_j, i, j), negru_last)) \
+                                or (jucator == "a" and not self.back_to_old((old_i, old_j, i, j), alb_last)):
+                            pos_move = copy.deepcopy(self.matr)
+                            pos_move[i][j] = jucator
+                            pos_move[old_i][old_j] = self.__class__.GOL
                             if jucator == "n":
                                 negru_last = (old_i, old_j, i, j)
                             else:
                                 alb_last = (old_i, old_j, i, j)
                             next_joc = Joc(pos_move, self.__class__.NR_LINII, self.__class__.NR_COLOANE, (negru_last,
-                                                                                                        alb_last))
+                                                                                                          alb_last))
                             next_joc.check_and_mark(jucator)
                             l_mutari.append(next_joc)
                     if self.parcurgere(1, 0, (i, j), jucator)[0]:
                         true, old_i, old_j = self.parcurgere(1, 0, (i, j), jucator)
-                        pos_move = copy.deepcopy(self.matr)
-                        pos_move[i][j] = jucator
-                        pos_move[old_i][old_j] = self.__class__.GOL
-                        if (jucator == "n" and not self.back_to_old((old_i, old_j, i, j), negru_last))\
-                            or (jucator == "a" and not self.back_to_old((old_i, old_j, i, j), alb_last)):
+                        if (jucator == "n" and not self.back_to_old((old_i, old_j, i, j), negru_last)) \
+                                or (jucator == "a" and not self.back_to_old((old_i, old_j, i, j), alb_last)):
+                            pos_move = copy.deepcopy(self.matr)
+                            pos_move[i][j] = jucator
+                            pos_move[old_i][old_j] = self.__class__.GOL
                             if jucator == "n":
                                 negru_last = (old_i, old_j, i, j)
                             else:
                                 alb_last = (old_i, old_j, i, j)
                             next_joc = Joc(pos_move, self.__class__.NR_LINII, self.__class__.NR_COLOANE, (negru_last,
-                                                                                                        alb_last))
+                                                                                                          alb_last))
                             next_joc.check_and_mark(jucator)
                             l_mutari.append(next_joc)
                     if self.parcurgere(0, -1, (i, j), jucator)[0]:
                         true, old_i, old_j = self.parcurgere(0, -1, (i, j), jucator)
-                        pos_move = copy.deepcopy(self.matr)
-                        pos_move[i][j] = jucator
-                        pos_move[old_i][old_j] = self.__class__.GOL
-                        if (jucator == "n" and not self.back_to_old((old_i, old_j, i, j), negru_last))\
-                            or (jucator == "a" and not self.back_to_old((old_i, old_j, i, j), alb_last)):
+                        if (jucator == "n" and not self.back_to_old((old_i, old_j, i, j), negru_last)) \
+                                or (jucator == "a" and not self.back_to_old((old_i, old_j, i, j), alb_last)):
+                            pos_move = copy.deepcopy(self.matr)
+                            pos_move[i][j] = jucator
+                            pos_move[old_i][old_j] = self.__class__.GOL
                             if jucator == "n":
                                 negru_last = (old_i, old_j, i, j)
                             else:
                                 alb_last = (old_i, old_j, i, j)
                             next_joc = Joc(pos_move, self.__class__.NR_LINII, self.__class__.NR_COLOANE, (negru_last,
-                                                                                                        alb_last))
+                                                                                                          alb_last))
                             next_joc.check_and_mark(jucator)
                             l_mutari.append(next_joc)
         return l_mutari
-
 
     # verifica unde se termina o linie, pe directia (dx, dy)
     # daca se termina intr-un capat al tablei, returneaza None
@@ -252,15 +252,14 @@ class Joc:
             i += dx
             j += dy
         if i == -1 or j == -1 or i == self.__class__.NR_LINII \
-            or j == self.__class__.NR_COLOANE:
+                or j == self.__class__.NR_COLOANE:
             return None
         return (i, j)
-
 
     # o metoda care testeaza daca un jucator poate ajunge in orice fel posibil la pozitia data
     def poate_ajunge(self, poz, jucator):
         if self.parcurgere(-1, 0, poz, jucator)[0] or self.parcurgere(0, 1, poz, jucator)[0] \
-            or self.parcurgere(1, 0, poz, jucator)[0] or self.parcurgere(0, -1, poz, jucator)[0]:
+                or self.parcurgere(1, 0, poz, jucator)[0] or self.parcurgere(0, -1, poz, jucator)[0]:
             return True
         return False
 
@@ -272,31 +271,32 @@ class Joc:
         if pi == i and pj == j:
             return True
         while pi >= 0 and pj >= 0 and pi < self.__class__.NR_LINII and pj < self.__class__.NR_COLOANE:
-            if self.matr[pi][pj] == Joc.jucator_opus(jucator): # a dat de o piesa de a oponentului
+            if self.matr[pi][pj] == Joc.jucator_opus(jucator):  # a dat de o piesa de a oponentului
                 return False
-            if pi == i and pj == j: # a putut ajunge in poz fara probleme
+            if pi == i and pj == j:  # a putut ajunge in poz fara probleme
                 # totusi, din nou trebuie verificat daca nu e cumva o configuratie precedenta a tablei
                 # pos_move = copy.deepcopy(self.matr)
                 # pos_move[i][j] = jucator
                 # pos_move[piesa[0]][piesa[1]] = self.__class__.GOL
                 negru_last, alb_last = self.ultima_mutare
-                if (jucator == "n" and not self.back_to_old((piesa[0], piesa[1], i,  j), negru_last))\
-                    or (jucator == "a" and not self.back_to_old((piesa[0], piesa[1], i,  j), alb_last)):
+                if (jucator == "n" and not self.back_to_old((piesa[0], piesa[1], i, j), negru_last)) \
+                        or (jucator == "a" and not self.back_to_old((piesa[0], piesa[1], i, j), alb_last)):
                     return True
                 return False
             pi += dx
             pj += dy
-        return False # a terminat tabla
+        return False  # a terminat tabla
 
     # verific daca se poate ajunge pe orice directie in poz, folosind piesa data
     def poate_ajunge_piesa(self, poz, jucator, piesa):
         if self.parcurgere_din_piesa(-1, 0, poz, jucator, piesa) or self.parcurgere_din_piesa(0, 1, poz, jucator, piesa) \
-            or self.parcurgere_din_piesa(1, 0, poz, jucator, piesa) or self.parcurgere_din_piesa(0, -1, poz, jucator, piesa):
+                or self.parcurgere_din_piesa(1, 0, poz, jucator, piesa) or self.parcurgere_din_piesa(0, -1, poz,
+                                                                                                     jucator, piesa):
             return True
         return False
 
     # o sa punctez o configuratie de genul ann# cu 2 puncte
-                                           ##a
+    ##a
     # si ceva de genul #nn# cu 1 punct
     #                  a##a
     # adica, daca in doua mutari ar putea face o captura, e un punct, dar daca poate face doar cu una, e doua puncte
@@ -307,9 +307,9 @@ class Joc:
 
     # TODO: de considerat si capturi care apar in urma altor capturi - maybe not
     # TODO: de marcat cumva piesele deja "capturate", ca sa nu numar de doua ori cazuri de genu
-                                                                                # #n#
-                                                                                # nan
-                                                                                # #n#
+    # #n#
+    # nan
+    # #n#
     def capturi_posibile(self, jucator):
         opposite_jucator = Joc.jucator_opus(jucator)
         score = 0.0
@@ -322,7 +322,8 @@ class Joc:
                         new_j = j + dy
                         if new_i < 0 or new_j < 0 or new_i >= self.__class__.NR_LINII or new_j >= self.__class__.NR_COLOANE:
                             continue
-                        if self.matr[new_i][new_j] == opposite_jucator and self.line_ends(dx, dy, (new_i, new_j)) is not None:
+                        if self.matr[new_i][new_j] == opposite_jucator and self.line_ends(dx, dy,
+                                                                                          (new_i, new_j)) is not None:
                             (capat_i, capat_j) = self.line_ends(dx, dy, (new_i, new_j))
                             # calculez cate piese ar captura asa
                             if dx == -1:
@@ -340,9 +341,11 @@ class Joc:
                                 else:
                                     modifier = 4.0
                             else:
-                                if self.poate_ajunge((i, j), opposite_jucator) and self.poate_ajunge((capat_i, capat_j), opposite_jucator):
+                                if self.poate_ajunge((i, j), opposite_jucator) and self.poate_ajunge((capat_i, capat_j),
+                                                                                                     opposite_jucator):
                                     modifier = 0.5
-                                elif self.poate_ajunge((i, j), opposite_jucator) or self.poate_ajunge((capat_i, capat_j), opposite_jucator):
+                                elif self.poate_ajunge((i, j), opposite_jucator) or self.poate_ajunge(
+                                        (capat_i, capat_j), opposite_jucator):
                                     modifier = 1.0
                                 else:
                                     modifier = 1.5
@@ -354,7 +357,8 @@ class Joc:
                         new_j = j + dy
                         if new_i < 0 or new_j < 0 or new_i >= self.__class__.NR_LINII or new_j >= self.__class__.NR_COLOANE:
                             continue
-                        if self.matr[new_i][new_j] == opposite_jucator and self.line_ends(dx, dy, (new_i, new_j)) is not None:
+                        if self.matr[new_i][new_j] == opposite_jucator and self.line_ends(dx, dy,
+                                                                                          (new_i, new_j)) is not None:
                             (capat_i, capat_j) = self.line_ends(dx, dy, (new_i, new_j))
                             if not self.poate_ajunge((capat_i, capat_j), jucator):
                                 continue
@@ -379,7 +383,6 @@ class Joc:
                                     modifier = 4.0
                             score += modifier * piese_capturate
         return score / 2
-
 
     # merge pe dx, dy pana cand da de o piesa jucator
     # daca da de o piesa jucator la final, toate piesele parcurse sunt trecute de partea lui
@@ -420,14 +423,13 @@ class Joc:
     # functie care se uita daca au fost efectuate capturi, caz in care le marcheaza corespunzator
     # de asemenea, da prioritate userului curent
     # daca am avea o configuratie de genul:
-     #n#
-    #ana
-     #n#
+    # n#
+    # ana
+    # n#
     # ar conta daca e randul lui a sau nu, deoarece daca am evalua pe ambele, unu dupa altu
     # am putea marca linia 2 ca aaa, iar apoi marcam coloana nnn la loc
     def check_and_mark(self, jucator):
         self.scan_table_for_captures(jucator)
-
 
     def o_sa_fie_capturat(self, piesa):
         directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
@@ -475,7 +477,8 @@ class Joc:
                 relevant_last = alb_last
             # merg pe spatii libere pana sigur nu e o mutare precedenta
             while self.back_to_old((i, j, new_i, new_j), relevant_last) and \
-                    (new_i >= 0 and new_j >= 0 and new_i < self.__class__.NR_LINII and new_j < self.__class__.NR_COLOANE):
+                    (
+                            new_i >= 0 and new_j >= 0 and new_i < self.__class__.NR_LINII and new_j < self.__class__.NR_COLOANE):
                 pos_move[new_i][new_j], pos_move[i][j] = self.matr[new_i][new_j], self.matr[i][j]
                 if self.matr[new_i][new_j] != self.__class__.GOL:
                     break
@@ -491,7 +494,6 @@ class Joc:
             directii += 1
         return directii
 
-
     # o metoda care verifica in cate feluri blocheaza un jucator pe altul
     # de observat tinut cont neaparat daca blocheaza cu adevarat, sau urmeaza ca piesa respectiva sa fie capturata
     # cred ca trebuie tinut cont de directiile libere, ca un de obicei numarul de blocari o sa fie identic
@@ -504,10 +506,10 @@ class Joc:
                     dir_libere += self.directii_libere((i, j))
                 elif self.matr[i][j] == opposite_jucator and self.o_sa_fie_capturat((i, j)):
                     dir_libere += self.directii_libere((i, j), True)
-        return dir_libere / 1.2 # impart la un numar relativ mic, pentru ca pot avea cazul cand sunt numarate un pic
-                                # prea multe directii, de ex n#n ar numara 2 directii libere, desi in realitate e una
-                                # singura; desigur, nu se intampla mereu asta, si de aia am ales o constanta putin sub
-                                # 2
+        return dir_libere / 1.2  # impart la un numar relativ mic, pentru ca pot avea cazul cand sunt numarate un pic
+        # prea multe directii, de ex n#n ar numara 2 directii libere, desi in realitate e una
+        # singura; desigur, nu se intampla mereu asta, si de aia am ales o constanta putin sub
+        # 2
 
     # numara cate piese are fiecare
     # nu s sigur daca e o idee prea buna
@@ -520,6 +522,24 @@ class Joc:
                     nr += 1
         return nr * modifier
 
+    # numara cate blocheaza JMAX
+    # ideea e sa il motivez cumva sa incerce sa blocheze cat mai multe piese, pentru ca doar numaratul
+    # directiilor libere poate conduce la comportamentul in care isi muta piesele doar ca sa formeze
+    # un fel de cruci, pe care are mobilitate (teoretica) mai crescuta
+    def count_blocking(self):
+        blocking = 0.0
+        for i in range(self.__class__.NR_LINII):
+            for j in range(self.__class__.NR_COLOANE):
+                if self.matr[i][j] == self.__class__.JMAX:
+                    directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+                    for dx, dy in directions:
+                        new_i = i + dx
+                        new_j = j + dy
+                        if new_i < 0 or new_j < 0 or new_i >= self.__class__.NR_LINII or new_j >= self.__class__.NR_COLOANE:
+                            continue
+                        if self.matr[new_i][new_j] == self.__class__.JMIN:
+                            blocking += 0.25
+        return blocking
 
     # scorul final e calculat folosind 3 metode diferite, pentru a tine cont de:
     # - cate capturi ar putea realiza in viitor (si cat de probabil e sa le realizeze)
@@ -536,8 +556,9 @@ class Joc:
             return 0.0
         else:
             return (self.capturi_posibile(self.__class__.JMAX) - self.capturi_posibile(self.__class__.JMIN)) \
-                    + (self.count_free(self.__class__.JMAX) - self.count_free(self.__class__.JMIN)) \
-                    + (self.count_pieces(self.__class__.JMAX) - self.count_pieces(self.__class__.JMIN))
+                   + (self.count_free(self.__class__.JMAX) - self.count_free(self.__class__.JMIN)) \
+                   + (self.count_pieces(self.__class__.JMAX) - self.count_pieces(self.__class__.JMIN)) \
+                   + self.count_blocking()
 
     def estimare_doar_capturi(self, adancime):
         t_final = self.final()
@@ -549,7 +570,8 @@ class Joc:
         elif t_final == "remiza":
             return 0.0
         else:
-            return (self.capturi_posibile(self.__class__.JMAX) - self.capturi_posibile(self.__class__.JMIN))
+            return (self.capturi_posibile(self.__class__.JMAX) - self.capturi_posibile(self.__class__.JMIN)) \
+                    + (self.count_pieces(self.__class__.JMAX) - self.count_pieces(self.__class__.JMIN))
 
     def sirAfisare(self):
         sir = "  |"
@@ -564,6 +586,7 @@ class Joc:
     def __repr__(self):
         return self.sirAfisare()
 
+
 class Stare:
     """
     Clasa folosita de algoritmii minimax si alpha-beta
@@ -571,6 +594,7 @@ class Stare:
     Functioneaza cu conditia ca in cadrul clasei Joc sa fie definiti JMIN si JMAX (cei doi jucatori posibili)
     De asemenea cere ca in clasa Joc sa fie definita si o metoda numita mutari() care ofera lista cu configuratiile posibile in urma mutarii unui jucator
     """
+
     def __init__(self, tabla_joc, j_curent, adancime, parinte=None, scor=None):
         self.tabla_joc = tabla_joc
         self.j_curent = j_curent
@@ -602,18 +626,22 @@ class Stare:
         sir = str(self.tabla_joc) + "(Juc curent:" + self.j_curent + ")\n"
         return sir
 
+
 """ Algoritmul MinMax """
 
 
-def min_max(stare):
+def min_max(stare, estimator=None):
     if stare.adancime == 0 or stare.tabla_joc.final():
-        stare.scor = stare.tabla_joc.estimeaza_scor(stare.adancime)
+        if estimator is None or estimator == "n":
+            stare.scor = stare.tabla_joc.estimeaza_scor(stare.adancime)
+        else:
+            stare.scor = stare.tabla_joc.estimare_doar_capturi(stare.adancime)
         return stare
     # calculez toate mutarile posibile din starea curenta
     stare.mutari_posibile = stare.mutari()
 
     # aplic algoritmul minimax pe toate mutarile posibile (calculand astfel subarborii lor)
-    mutari_scor = [min_max(mutare) for mutare in stare.mutari_posibile]
+    mutari_scor = [min_max(mutare, estimator) for mutare in stare.mutari_posibile]
 
     if stare.j_curent == Joc.JMAX:
         # daca jucatorul e JMAX aleg starea-fiica cu scorul maxim
@@ -625,9 +653,12 @@ def min_max(stare):
     return stare
 
 
-def alpha_beta(alpha, beta, stare):
+def alpha_beta(alpha, beta, stare, estimator=None):
     if stare.adancime == 0 or stare.tabla_joc.final():
-        stare.scor = stare.tabla_joc.estimeaza_scor(stare.adancime)
+        if estimator is None or estimator == "n":
+            stare.scor = stare.tabla_joc.estimeaza_scor(stare.adancime)
+        else:
+            stare.scor = stare.tabla_joc.estimare_doar_capturi(stare.adancime)
         return stare
 
     if alpha > beta:
@@ -640,7 +671,7 @@ def alpha_beta(alpha, beta, stare):
 
         for mutare in stare.mutari_posibile:
             # calculeaza scorul
-            stare_noua = alpha_beta(alpha, beta, mutare)
+            stare_noua = alpha_beta(alpha, beta, mutare, estimator)
 
             if (scor_curent < stare_noua.scor):
                 stare.stare_aleasa = stare_noua
@@ -655,7 +686,7 @@ def alpha_beta(alpha, beta, stare):
 
         for mutare in stare.mutari_posibile:
 
-            stare_noua = alpha_beta(alpha, beta, mutare)
+            stare_noua = alpha_beta(alpha, beta, mutare, estimator)
 
             if (scor_curent > stare_noua.scor):
                 stare.stare_aleasa = stare_noua
@@ -680,6 +711,7 @@ def afis_daca_final(stare_curenta):
         return True
 
     return False
+
 
 class Buton:
     def __init__(self, display=None, left=0, top=0, w=0, h=0, culoareFundal=(53, 80, 115),
@@ -754,6 +786,7 @@ class GrupButoane:
     def getValoare(self):
         return self.listaButoane[self.indiceSelectat].valoare
 
+
 ############# ecran initial ########################
 def deseneaza_alegeri(display):
     btn_alg = GrupButoane(
@@ -793,8 +826,8 @@ def deseneaza_alegeri(display):
         indiceSelectat=0
     )
     btn_pvp = GrupButoane(
-        top = 400,
-        left = 30,
+        top=400,
+        left=30,
         listaButoane=[
             Buton(display=display, w=150, h=30, text="JucatorVSJucator", valoare="pvp"),
             Buton(display=display, w=150, h=30, text="JucatorVSCalculator", valoare="pve"),
@@ -826,8 +859,8 @@ def deseneaza_alegeri(display):
                                         return btn_juc.getValoare(), btn_alg.getValoare(), btn_dif.getValoare(), btn_dim.getValoare(), btn_pvp.getValoare()
         pygame.display.update()
 
-def main():
 
+def main():
     # setari interf grafica
     pygame.init()
     pygame.display.set_caption("Ming Mang")
@@ -841,7 +874,8 @@ def main():
     # initializare tabla
     JMIN, tip_algoritm, difficulty, dimensiune_tabla, pvp = deseneaza_alegeri(ecran)
     dimensiune_tabla = int(dimensiune_tabla)
-    Joc.initializeaza(ecran, NR_LINII=dimensiune_tabla, NR_COLOANE=dimensiune_tabla, dim_celula=int(w*nl/dimensiune_tabla))
+    Joc.initializeaza(ecran, NR_LINII=dimensiune_tabla, NR_COLOANE=dimensiune_tabla,
+                      dim_celula=int(w * nl / dimensiune_tabla))
     Joc.JMIN = JMIN
     nl = nc = dimensiune_tabla
     tabla_curenta = Joc(NR_LINII=dimensiune_tabla, NR_COLOANE=dimensiune_tabla)
@@ -895,19 +929,24 @@ def main():
 
                                 if stare_curenta.tabla_joc.matr[linie][coloana] == Joc.JMIN:
                                     selected_piesa = (linie, coloana)
-                                elif selected_piesa is not None and stare_curenta.tabla_joc.matr[linie][coloana] == Joc.GOL \
-                                    and stare_curenta.tabla_joc.poate_ajunge_piesa((linie, coloana), Joc.JMIN, selected_piesa)\
-                                    and stare_curenta.tabla_joc.mutare_valida((linie, coloana), Joc.JMIN, selected_piesa):
+                                elif selected_piesa is not None and stare_curenta.tabla_joc.matr[linie][
+                                    coloana] == Joc.GOL \
+                                        and stare_curenta.tabla_joc.poate_ajunge_piesa((linie, coloana), Joc.JMIN,
+                                                                                       selected_piesa) \
+                                        and stare_curenta.tabla_joc.mutare_valida((linie, coloana), Joc.JMIN,
+                                                                                  selected_piesa):
                                     stare_curenta.tabla_joc.matr[linie][coloana] = Joc.JMIN
                                     stare_curenta.tabla_joc.matr[selected_piesa[0]][selected_piesa[1]] = Joc.GOL
                                     negru_last, alb_last = stare_curenta.tabla_joc.ultima_mutare
                                     if Joc.JMIN == "a":
-                                        stare_curenta.tabla_joc.ultima_mutare = (negru_last, (selected_piesa[0], selected_piesa[1], linie
-                                                                                                                           , coloana))
+                                        stare_curenta.tabla_joc.ultima_mutare = (
+                                        negru_last, (selected_piesa[0], selected_piesa[1], linie
+                                                     , coloana))
                                     else:
-                                        stare_curenta.tabla_joc.ultima_mutare = ((selected_piesa[0], selected_piesa[1], linie
-                                                                                                                           , coloana),
-                                                                                                                                        alb_last)
+                                        stare_curenta.tabla_joc.ultima_mutare = (
+                                        (selected_piesa[0], selected_piesa[1], linie
+                                         , coloana),
+                                        alb_last)
                                     negru_last, alb_last = stare_curenta.tabla_joc.ultima_mutare
                                     print(negru_last)
                                     print(alb_last)
@@ -974,7 +1013,8 @@ def main():
                         pos = pygame.mouse.get_pos()  # coordonatele cursorului
                         for np in range(len(Joc.celuleGrid)):
                             if Joc.celuleGrid[np].collidepoint(pos):
-                                stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa_jmin, cr_juc=Joc.JMIN)
+                                stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa_jmin,
+                                                                       cr_juc=Joc.JMIN)
                                 break
 
                     elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -997,17 +1037,18 @@ def main():
                                         and stare_curenta.tabla_joc.mutare_valida((linie, coloana), Joc.JMIN,
                                                                                   selected_piesa_jmin):
                                     stare_curenta.tabla_joc.matr[linie][coloana] = Joc.JMIN
-                                    stare_curenta.tabla_joc.matr[selected_piesa_jmin[0]][selected_piesa_jmin[1]] = Joc.GOL
+                                    stare_curenta.tabla_joc.matr[selected_piesa_jmin[0]][
+                                        selected_piesa_jmin[1]] = Joc.GOL
                                     negru_last, alb_last = stare_curenta.tabla_joc.ultima_mutare
                                     if Joc.JMIN == "a":
                                         stare_curenta.tabla_joc.ultima_mutare = (
-                                        negru_last, (selected_piesa_jmin[0], selected_piesa_jmin[1], linie
-                                                     , coloana))
+                                            negru_last, (selected_piesa_jmin[0], selected_piesa_jmin[1], linie
+                                                         , coloana))
                                     else:
                                         stare_curenta.tabla_joc.ultima_mutare = (
-                                        (selected_piesa_jmin[0], selected_piesa_jmin[1], linie
-                                         , coloana),
-                                        alb_last)
+                                            (selected_piesa_jmin[0], selected_piesa_jmin[1], linie
+                                             , coloana),
+                                            alb_last)
                                     negru_last, alb_last = stare_curenta.tabla_joc.ultima_mutare
                                     print(negru_last)
                                     print(alb_last)
@@ -1040,11 +1081,11 @@ def main():
                         pos = pygame.mouse.get_pos()  # coordonatele cursorului
                         for np in range(len(Joc.celuleGrid)):
                             if Joc.celuleGrid[np].collidepoint(pos):
-                                stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa_jmax, cr_juc=Joc.JMAX)
+                                stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa_jmax,
+                                                                       cr_juc=Joc.JMAX)
                                 break
 
                     elif event.type == pygame.MOUSEBUTTONDOWN:
-                        print("ma simt ca la mine acasa")
 
                         pos = pygame.mouse.get_pos()  # coordonatele cursorului la momentul clickului
                         for np in range(len(Joc.celuleGrid)):
@@ -1053,7 +1094,8 @@ def main():
                                 # linie=np//Joc.NR_COLOANE
                                 coloana = np % Joc.NR_COLOANE
                                 linie = np // Joc.NR_LINII
-                                print(coloana, linie, stare_curenta.tabla_joc.matr[linie][coloana], Joc.JMAX, selected_piesa_jmax)
+                                print(coloana, linie, stare_curenta.tabla_joc.matr[linie][coloana], Joc.JMAX,
+                                      selected_piesa_jmax)
                                 ###############################
 
                                 if stare_curenta.tabla_joc.matr[linie][coloana] == Joc.JMAX:
@@ -1065,17 +1107,18 @@ def main():
                                         and stare_curenta.tabla_joc.mutare_valida((linie, coloana), Joc.JMAX,
                                                                                   selected_piesa_jmax):
                                     stare_curenta.tabla_joc.matr[linie][coloana] = Joc.JMAX
-                                    stare_curenta.tabla_joc.matr[selected_piesa_jmax[0]][selected_piesa_jmax[1]] = Joc.GOL
+                                    stare_curenta.tabla_joc.matr[selected_piesa_jmax[0]][
+                                        selected_piesa_jmax[1]] = Joc.GOL
                                     negru_last, alb_last = stare_curenta.tabla_joc.ultima_mutare
                                     if Joc.JMAX == "a":
                                         stare_curenta.tabla_joc.ultima_mutare = (
-                                        negru_last, (selected_piesa_jmax[0], selected_piesa_jmax[1], linie
-                                                     , coloana))
+                                            negru_last, (selected_piesa_jmax[0], selected_piesa_jmax[1], linie
+                                                         , coloana))
                                     else:
                                         stare_curenta.tabla_joc.ultima_mutare = (
-                                        (selected_piesa_jmax[0], selected_piesa_jmax[1], linie
-                                         , coloana),
-                                        alb_last)
+                                            (selected_piesa_jmax[0], selected_piesa_jmax[1], linie
+                                             , coloana),
+                                            alb_last)
                                     negru_last, alb_last = stare_curenta.tabla_joc.ultima_mutare
                                     print(negru_last)
                                     print(alb_last)
@@ -1098,15 +1141,12 @@ def main():
                 Joc.JMAX = "a"
                 Joc.JMIN = "n"
 
-
-                selected_piesa = None
-
                 # preiau timpul in milisecunde de dinainte de mutare
                 t_inainte = int(round(time.time() * 1000))
                 if tip_algoritm == 'minimax':
-                    stare_actualizata = min_max(stare_curenta)
+                    stare_actualizata = min_max(stare_curenta, stare_curenta.j_curent)
                 else:  # tip_algoritm=="alphabeta"
-                    stare_actualizata = alpha_beta(-500, 500, stare_curenta)
+                    stare_actualizata = alpha_beta(-500, 500, stare_curenta, stare_curenta.j_curent)
                 stare_curenta.tabla_joc = stare_actualizata.stare_aleasa.tabla_joc
                 print(stare_actualizata.scor)
 
@@ -1127,15 +1167,12 @@ def main():
                 Joc.JMAX = "n"
                 Joc.JMIN = "a"
 
-
-                selected_piesa = None
-
                 # preiau timpul in milisecunde de dinainte de mutare
                 t_inainte = int(round(time.time() * 1000))
                 if tip_algoritm == 'minimax':
-                    stare_actualizata = min_max(stare_curenta)
+                    stare_actualizata = min_max(stare_curenta, stare_curenta.j_curent)
                 else:  # tip_algoritm=="alphabeta"
-                    stare_actualizata = alpha_beta(-500, 500, stare_curenta)
+                    stare_actualizata = alpha_beta(-500, 500, stare_curenta, stare_curenta.j_curent)
                 stare_curenta.tabla_joc = stare_actualizata.stare_aleasa.tabla_joc
                 print(stare_actualizata.scor)
 
