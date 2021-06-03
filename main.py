@@ -1041,15 +1041,6 @@ def main():
                         # iesim din program
                         pygame.quit()
                         sys.exit()
-                    if event.type == pygame.MOUSEMOTION:
-
-                        pos = pygame.mouse.get_pos()  # coordonatele cursorului
-                        for np in range(len(Joc.celuleGrid)):
-                            if Joc.celuleGrid[np].collidepoint(pos):
-                                stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa_jmin,
-                                                                       cr_juc=Joc.JMIN)
-                                break
-
                     elif event.type == pygame.MOUSEBUTTONDOWN:
 
                         pos = pygame.mouse.get_pos()  # coordonatele cursorului la momentul clickului
@@ -1063,6 +1054,8 @@ def main():
 
                                 if stare_curenta.tabla_joc.matr[linie][coloana] == Joc.JMIN:
                                     selected_piesa_jmin = (linie, coloana)
+                                    stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa_jmin,
+                                                                       cr_juc=Joc.JMIN)
                                 elif selected_piesa_jmin is not None and stare_curenta.tabla_joc.matr[linie][
                                     coloana] == Joc.GOL \
                                         and stare_curenta.tabla_joc.poate_ajunge_piesa((linie, coloana), Joc.JMIN,
@@ -1092,7 +1085,7 @@ def main():
                                     print("Jucatorul 1 a gandit timp de " + str(
                                         t_dupa - t_inainte_player1) + " milisecunde.")
 
-                                    stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa_jmin)
+                                    stare_curenta.tabla_joc.deseneaza_grid()
                                     # testez daca jocul a ajuns intr-o stare finala
                                     # si afisez un mesaj corespunzator in caz ca da
                                     if (afis_daca_final(stare_curenta)):
@@ -1111,15 +1104,6 @@ def main():
                         # iesim din program
                         pygame.quit()
                         sys.exit()
-                    if event.type == pygame.MOUSEMOTION:
-
-                        pos = pygame.mouse.get_pos()  # coordonatele cursorului
-                        for np in range(len(Joc.celuleGrid)):
-                            if Joc.celuleGrid[np].collidepoint(pos):
-                                stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa_jmax,
-                                                                       cr_juc=Joc.JMAX)
-                                break
-
                     elif event.type == pygame.MOUSEBUTTONDOWN:
 
                         pos = pygame.mouse.get_pos()  # coordonatele cursorului la momentul clickului
@@ -1135,6 +1119,8 @@ def main():
 
                                 if stare_curenta.tabla_joc.matr[linie][coloana] == Joc.JMAX:
                                     selected_piesa_jmax = (linie, coloana)
+                                    stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa_jmax,
+                                                                       cr_juc=Joc.JMAX)
                                 elif selected_piesa_jmax is not None and stare_curenta.tabla_joc.matr[linie][
                                     coloana] == Joc.GOL \
                                         and stare_curenta.tabla_joc.poate_ajunge_piesa((linie, coloana), Joc.JMAX,
@@ -1166,7 +1152,7 @@ def main():
                                     print("Jucatorul 2 a gandit timp de " + str(
                                         t_dupa - t_inainte_player2) + " milisecunde.")
 
-                                    stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa_jmax)
+                                    stare_curenta.tabla_joc.deseneaza_grid()
                                     # testez daca jocul a ajuns intr-o stare finala
                                     # si afisez un mesaj corespunzator in caz ca da
                                     if (afis_daca_final(stare_curenta)):
