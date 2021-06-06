@@ -3,6 +3,7 @@ import time
 import pygame
 import sys
 from statistics import median
+from threading import Thread, Timer
 
 class Joc:
     JMIN = None
@@ -859,7 +860,6 @@ def deseneaza_alegeri(display):
                                         return btn_juc.getValoare(), btn_alg.getValoare(), btn_dif.getValoare(), btn_dim.getValoare(), btn_pvp.getValoare()
         pygame.display.update()
 
-
 nr_noduri_gen = 0
 def main():
     global nr_noduri_gen
@@ -895,7 +895,10 @@ def main():
     stare_curenta = Stare(tabla_curenta, 'n', ADANCIME_MAX)
 
     tabla_curenta.deseneaza_grid()
-    t_total_start = int(round(time.time() * 1000))
+    t_total_start = int(round(time.time()))
+    sg_buton = Buton(display=ecran, top=10, left=450, w=15, h=15, text="x", culoareFundal=(155, 0, 55))
+    mutari_player = 0
+    mutari_pc = 0
     if pvp == "pve":
         selected_piesa = None
         # timpii de gandire pt AI
@@ -923,6 +926,14 @@ def main():
                         sys.exit()
                     elif event.type == pygame.MOUSEBUTTONDOWN:
                         pos = pygame.mouse.get_pos()  # coordonatele cursorului la momentul clickului
+                        if sg_buton.selecteazaDupacoord(pos):
+                            pygame.quit()
+                            print("-"*50)
+                            print("Timp total de joc: " + str(round(time.time() - t_total_start, 2)) + " secunde")
+                            print("Nr. mutari jucator: " + str(mutari_player))
+                            print("Nr. mutari calculator: " + str(mutari_pc))
+                            sys.exit()
+
                         for np in range(len(Joc.celuleGrid)):
 
                             if Joc.celuleGrid[np].collidepoint(pos):
@@ -934,12 +945,15 @@ def main():
                                 if stare_curenta.tabla_joc.matr[linie][coloana] == Joc.JMIN:
                                     selected_piesa = (linie, coloana)
                                     stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa)
+                                    sg_buton.deseneaza()
+                                    pygame.display.update()
                                 elif selected_piesa is not None and stare_curenta.tabla_joc.matr[linie][
                                     coloana] == Joc.GOL \
                                         and stare_curenta.tabla_joc.poate_ajunge_piesa((linie, coloana), Joc.JMIN,
                                                                                        selected_piesa) \
                                         and stare_curenta.tabla_joc.mutare_valida((linie, coloana), Joc.JMIN,
                                                                                   selected_piesa):
+                                    mutari_player += 1
                                     stare_curenta.tabla_joc.matr[linie][coloana] = Joc.JMIN
                                     stare_curenta.tabla_joc.matr[selected_piesa[0]][selected_piesa[1]] = Joc.GOL
                                     negru_last, alb_last = stare_curenta.tabla_joc.ultima_mutare
@@ -965,6 +979,8 @@ def main():
                                         t_dupa - t_inainte_player) + " milisecunde.")
 
                                     stare_curenta.tabla_joc.deseneaza_grid()
+                                    sg_buton.deseneaza()
+                                    pygame.display.update()
                                     # testez daca jocul a ajuns intr-o stare finala
                                     # si afisez un mesaj corespunzator in caz ca da
                                     if (afis_daca_final(stare_curenta)):
@@ -1014,8 +1030,11 @@ def main():
                 print("Timp minim de gandire pana acum " + str(tmin))
                 print("Timp maxim de gandire pana acum " + str(tmax))
                 print("Timp median de gandire pana acum " + str(median(all_times)))
+                mutari_pc += 1
 
                 stare_curenta.tabla_joc.deseneaza_grid(mutare_calculator=(init_i, init_j, fin_i, fin_j))
+                sg_buton.deseneaza()
+                pygame.display.update()
                 if (afis_daca_final(stare_curenta)):
                     break
 
@@ -1045,6 +1064,14 @@ def main():
                     elif event.type == pygame.MOUSEBUTTONDOWN:
 
                         pos = pygame.mouse.get_pos()  # coordonatele cursorului la momentul clickului
+                        if sg_buton.selecteazaDupacoord(pos):
+                            pygame.quit()
+                            print("-"*50)
+                            print("Timp total de joc: " + str(round(time.time() - t_total_start, 2)) + " secunde")
+                            print("Nr. mutari jucator 1 : " + str(mutari_player))
+                            print("Nr. mutari jucator 2: " + str(mutari_pc))
+                            sys.exit()
+
                         for np in range(len(Joc.celuleGrid)):
 
                             if Joc.celuleGrid[np].collidepoint(pos):
@@ -1057,12 +1084,15 @@ def main():
                                     selected_piesa_jmin = (linie, coloana)
                                     stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa_jmin,
                                                                        cr_juc=Joc.JMIN)
+                                    sg_buton.deseneaza()
+                                    pygame.display.update()
                                 elif selected_piesa_jmin is not None and stare_curenta.tabla_joc.matr[linie][
                                     coloana] == Joc.GOL \
                                         and stare_curenta.tabla_joc.poate_ajunge_piesa((linie, coloana), Joc.JMIN,
                                                                                        selected_piesa_jmin) \
                                         and stare_curenta.tabla_joc.mutare_valida((linie, coloana), Joc.JMIN,
                                                                                   selected_piesa_jmin):
+                                    mutari_player += 1
                                     stare_curenta.tabla_joc.matr[linie][coloana] = Joc.JMIN
                                     stare_curenta.tabla_joc.matr[selected_piesa_jmin[0]][
                                         selected_piesa_jmin[1]] = Joc.GOL
@@ -1087,6 +1117,8 @@ def main():
                                         t_dupa - t_inainte_player1) + " milisecunde.")
 
                                     stare_curenta.tabla_joc.deseneaza_grid()
+                                    sg_buton.deseneaza()
+                                    pygame.display.update()
                                     # testez daca jocul a ajuns intr-o stare finala
                                     # si afisez un mesaj corespunzator in caz ca da
                                     if (afis_daca_final(stare_curenta)):
@@ -1108,6 +1140,14 @@ def main():
                     elif event.type == pygame.MOUSEBUTTONDOWN:
 
                         pos = pygame.mouse.get_pos()  # coordonatele cursorului la momentul clickului
+                        if sg_buton.selecteazaDupacoord(pos):
+                            pygame.quit()
+                            print("-"*50)
+                            print("Timp total de joc: " + str(round(time.time() - t_total_start, 2)) + " secunde")
+                            print("Nr. mutari jucator: " + str(mutari_player))
+                            print("Nr. mutari calculator: " + str(mutari_pc))
+                            sys.exit()
+
                         for np in range(len(Joc.celuleGrid)):
 
                             if Joc.celuleGrid[np].collidepoint(pos):
@@ -1122,12 +1162,15 @@ def main():
                                     selected_piesa_jmax = (linie, coloana)
                                     stare_curenta.tabla_joc.deseneaza_grid(piesa_marcata=selected_piesa_jmax,
                                                                        cr_juc=Joc.JMAX)
+                                    sg_buton.deseneaza()
+                                    pygame.display.update()
                                 elif selected_piesa_jmax is not None and stare_curenta.tabla_joc.matr[linie][
                                     coloana] == Joc.GOL \
                                         and stare_curenta.tabla_joc.poate_ajunge_piesa((linie, coloana), Joc.JMAX,
                                                                                        selected_piesa_jmax) \
                                         and stare_curenta.tabla_joc.mutare_valida((linie, coloana), Joc.JMAX,
                                                                                   selected_piesa_jmax):
+                                    mutari_pc += 1
                                     stare_curenta.tabla_joc.matr[linie][coloana] = Joc.JMAX
                                     stare_curenta.tabla_joc.matr[selected_piesa_jmax[0]][
                                         selected_piesa_jmax[1]] = Joc.GOL
@@ -1154,6 +1197,8 @@ def main():
                                         t_dupa - t_inainte_player2) + " milisecunde.")
 
                                     stare_curenta.tabla_joc.deseneaza_grid()
+                                    sg_buton.deseneaza()
+                                    pygame.display.update()
                                     # testez daca jocul a ajuns intr-o stare finala
                                     # si afisez un mesaj corespunzator in caz ca da
                                     if (afis_daca_final(stare_curenta)):
@@ -1176,6 +1221,17 @@ def main():
         nmax2 = None
         all_nodes2 = []
         while True:
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()  # coordonatele cursorului la momentul clickului
+                    if sg_buton.selecteazaDupacoord(pos):
+                        pygame.quit()
+                        print("-" * 50)
+                        print("Timp total de joc: " + str(round(time.time() - t_total_start, 2)) + " secunde")
+                        print("Nr. mutari calculator 1: " + str(mutari_player))
+                        print("Nr. mutari calculator 2: " + str(mutari_pc))
+                        sys.exit()
+
             if stare_curenta.j_curent == "a":
                 Joc.JMAX = "a"
                 Joc.JMIN = "n"
@@ -1215,7 +1271,10 @@ def main():
                 print("Timp minim de gandire pana acum " + str(tmin1))
                 print("Timp maxim de gandire pana acum " + str(tmax1))
                 print("Timp median de gandire pana acum " + str(median(all_times1)))
+                mutari_player += 1
                 stare_curenta.tabla_joc.deseneaza_grid(mutare_calculator=(init_i, init_j, fin_i, fin_j))
+                sg_buton.deseneaza()
+                pygame.display.update()
                 if (afis_daca_final(stare_curenta)):
                     break
 
@@ -1261,13 +1320,22 @@ def main():
                 print("Timp minim de gandire pana acum " + str(tmin2))
                 print("Timp maxim de gandire pana acum " + str(tmax2))
                 print("Timp median de gandire pana acum " + str(median(all_times2)))
+                mutari_pc += 1
                 stare_curenta.tabla_joc.deseneaza_grid(mutare_calculator=(init_i, init_j, fin_i, fin_j))
+                sg_buton.deseneaza()
+                pygame.display.update()
                 if (afis_daca_final(stare_curenta)):
                     break
 
                 # S-a realizat o mutare. Schimb jucatorul cu cel opus
                 stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
 
+    # se afiseaza doar daca a castigat cineva meciul
+    print("-" * 50)
+    print("Timp total de joc: " + str(round(time.time() - t_total_start, 2)) + " secunde")
+    print("Nr. mutari calculator 1: " + str(mutari_player))
+    print("Nr. mutari calculator 2: " + str(mutari_pc))
+    sys.exit()
 
 if __name__ == "__main__":
     main()
