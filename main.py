@@ -808,6 +808,7 @@ def deseneaza_alegeri(display):
         top=230,
         left=30,
         listaButoane=[
+            Buton(display=display, w=60, h=30, text="foarte usor", valoare="fusor"),
             Buton(display=display, w=35, h=30, text="usor", valoare="usor"),
             Buton(display=display, w=35, h=30, text="mediu", valoare="mediu"),
             Buton(display=display, w=35, h=30, text="greu", valoare="greu")
@@ -889,7 +890,7 @@ def main():
     print("Tabla initiala")
     print(str(tabla_curenta))
 
-    ADANCIME_MAX = 4 if difficulty == "greu" else 3 if difficulty == "mediu" else 2
+    ADANCIME_MAX = 4 if difficulty == "greu" else 3 if difficulty == "mediu" else 2 if difficulty == "usor" else 1
     # creare stare initiala
     stare_curenta = Stare(tabla_curenta, 'n', ADANCIME_MAX)
 
