@@ -316,20 +316,8 @@ class Joc:
             return True
         return False
 
-    # o sa punctez o configuratie de genul ann# cu 2 puncte
-    ##a
-    # si ceva de genul #nn# cu 1 punct
-    #                  a##a
-    # adica, daca in doua mutari ar putea face o captura, e un punct, dar daca poate face doar cu una, e doua puncte
-    # also maybe sa tin cont daca ar putea inchide negru captura de sus? hmm, maybe not? ca pe la inceput ar putea inchide
-    # cam tot
-    # momentan, daca poate fi inchis, adaug 0.5 scor in loc de 1
-    # de asemenea, tin cont de cate piese am capturat
-
-    # TODO: de marcat cumva piesele deja "capturate", ca sa nu numar de doua ori cazuri de genu
-    # #n#
-    # nan
-    # #n#
+    # numara cate capturi ar fi posibile din viitor si le puncteaza in functie de cat de
+    # probabile sunt, din starea actuala
     def capturi_posibile(self, jucator):
         opposite_jucator = Joc.jucator_opus(jucator)
         score = 0.0
@@ -428,7 +416,8 @@ class Joc:
                 i += dx
                 j += dy
 
-    # scaneaza tabla de joc pentru capturi ale jucatorului specificat
+    # scaneaza tabla de joc pentru capturi ale jucatorului specificat, cu piesa mutata la mutarea
+    # curenta
     def scan_table_for_captures(self, jucator, piesa_mutata):
         (i, j) = piesa_mutata
         directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
@@ -439,18 +428,13 @@ class Joc:
                 if self.matr[new_i][new_j] == Joc.jucator_opus(jucator):
                     self.try_to_mark(dx, dy, (new_i, new_j), jucator)
 
-    # functie care se uita daca au fost efectuate capturi, caz in care le marcheaza corespunzator
-    # de asemenea, da prioritate userului curent
-    # daca am avea o configuratie de genul:
-    # n#
-    # ana
-    # n#
-    # ar conta daca e randul lui a sau nu, deoarece daca am evalua pe ambele, unu dupa altu
-    # am putea marca linia 2 ca aaa, iar apoi marcam coloana nnn la loc
+    # ar putea fi scoasa metoda, in versiuni precedente servea un scop diferit si apela
+    # scan_table_for_captures de doua ori (cu jucatori diferiti)
     def check_and_mark(self, jucator, piesa_mutata):
         self.scan_table_for_captures(jucator, piesa_mutata)
 
-    def directii_libere(self, piesa, will_switch=False):
+    # numara in cate directii se poate muta o piesa
+    def directii_libere(self, piesa):
         directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
         i, j = piesa
         directii = 0
@@ -465,8 +449,6 @@ class Joc:
                 continue
             pos_move = copy.deepcopy(self.matr)
             pos_move[new_i][new_j], pos_move[i][j] = self.matr[i][j], self.matr[new_i][new_j]
-            if will_switch:
-                pos_move[new_i][new_j] = Joc.jucator_opus(self.matr[i][j])
             negru_last, alb_last = self.ultima_mutare
             if self.matr[i][j] == "n":
                 relevant_last = negru_last
@@ -480,8 +462,6 @@ class Joc:
                 if self.matr[new_i][new_j] != self.__class__.GOL:
                     break
                 pos_move[new_i][new_j], pos_move[i][j] = self.matr[i][j], self.matr[new_i][new_j]
-                if will_switch:
-                    pos_move[new_i][new_j] = Joc.jucator_opus(self.matr[i][j])
                 new_i += dx
                 new_j += dy
             if new_i < 0 or new_j < 0 or new_i >= self.__class__.NR_LINII or new_j >= self.__class__.NR_COLOANE:
@@ -491,11 +471,8 @@ class Joc:
             directii += 1
         return directii
 
-    # o metoda care verifica in cate feluri blocheaza un jucator pe altul
-    # de observat tinut cont neaparat daca blocheaza cu adevarat, sau urmeaza ca piesa respectiva sa fie capturata
-    # cred ca trebuie tinut cont de directiile libere, ca un de obicei numarul de blocari o sa fie identic
+    # numara in cate directii se poate misca jucatorul actual IN TOTAL
     def count_free(self, jucator):
-        opposite_jucator = Joc.jucator_opus(jucator)
         dir_libere = 0.0
         for i in range(self.__class__.NR_LINII):
             for j in range(self.__class__.NR_COLOANE):
@@ -534,10 +511,11 @@ class Joc:
                             blocking += 0.25
         return blocking
 
-    # scorul final e calculat folosind 3 metode diferite, pentru a tine cont de:
+    # scorul final e calculat folosind 4 metode diferite, pentru a tine cont de:
     # - cate capturi ar putea realiza in viitor (si cat de probabil e sa le realizeze)
     # - cate piese poate misca libere (pentru a tine cont de victoria prin blocare)
     # - cate piese are in comparatie cu celalalt jucator (pentru a puncta capturi realizate)
+    # - cate piese de-ale adversarului blocheaza
     def estimeaza_scor(self, adancime):
         t_final = self.final()
 
@@ -553,6 +531,9 @@ class Joc:
                    + (self.count_pieces(self.__class__.JMAX) - self.count_pieces(self.__class__.JMIN)) \
                    + self.count_blocking()
 
+
+    # metoda asta modeleaza o inteligenta mai agresiva, care foloseste pentru estimari doar numarul
+    # de capturi posibile si numarul de piese detinute, in total
     def estimare_doar_capturi(self, adancime):
         t_final = self.final()
 
@@ -865,7 +846,7 @@ def main():
     global nr_noduri_gen
     # setari interf grafica
     pygame.init()
-    pygame.display.set_caption("Ming Mang")
+    pygame.display.set_caption("Dragos-Constantin Tantaru - Ming Mang")
     # dimensiunea ferestrei in pixeli
     nl = 10
     nc = 10
@@ -1144,8 +1125,8 @@ def main():
                             pygame.quit()
                             print("-"*50)
                             print("Timp total de joc: " + str(round(time.time() - t_total_start, 2)) + " secunde")
-                            print("Nr. mutari jucator: " + str(mutari_player))
-                            print("Nr. mutari calculator: " + str(mutari_pc))
+                            print("Nr. mutari jucator 1: " + str(mutari_player))
+                            print("Nr. mutari jucator 2: " + str(mutari_pc))
                             sys.exit()
 
                         for np in range(len(Joc.celuleGrid)):
